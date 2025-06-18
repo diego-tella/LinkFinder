@@ -45,6 +45,12 @@ class javascript:
                 return False
         except:
             return False
+            
+    def verify_slash(self, file):
+        if file[0] == "/":
+            return file
+        else:
+            return '/'+file
 
     def save_file(self, file):
         if self.is_full_url(file):
@@ -52,7 +58,7 @@ class javascript:
             with open("javascript_files/"+self.get_file_path(file), 'w') as f:
                 f.write(jsbeautifier.beautify(r.text))
         else:
-            r = requests.get(self.url+file)
+            r = requests.get(self.url+self.verify_slash(file))
             with open("javascript_files/"+self.get_file_path(file), 'w') as f:
                 f.write(jsbeautifier.beautify(r.text))
 
