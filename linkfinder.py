@@ -7,6 +7,7 @@
 import os
 os.environ["BROWSER"] = "open"
 import requests
+import jsbeautifier
 
 # Import libraries
 import re, sys, glob, html, argparse, jsbeautifier, webbrowser, subprocess, base64, ssl, xml.etree.ElementTree
@@ -26,11 +27,16 @@ try:
 except ImportError:
     from urllib2 import Request, urlopen
 
-#to do: retirar pontos de interrogação da url para fazer o parse correto do js e adicionar o beautiful
 class javascript:
     def __init__(self, url, endpoints):
         self.url = url
         self.endpoints = endpoints
+
+    def clean_parameters(self, file):
+        if "?" in file:
+            return file.split("?")[0]
+        else:
+            return file
 
     def is_javascript_file(self, file):
         try:
@@ -46,11 +52,11 @@ class javascript:
         if self.is_full_url(file):
             r = requests.get(file)
             with open("javascript_files/"+self.get_file_path(file), 'w') as f:
-                f.write(r.text)
+                f.write(jsbeautifier.beautify(r.text))
         else:
             r = requests.get(self.url+file)
             with open("javascript_files/"+self.get_file_path(file), 'w') as f:
-                f.write(r.text)
+                f.write(jsbeautifier.beautify(r.text))
 
     def is_full_url(self, file):
         if 'http' in file:
@@ -62,7 +68,7 @@ class javascript:
     
     def main(self):
         for endpoint in self.endpoints:
-            path = html.escape(endpoint["link"]).encode('ascii', 'ignore').decode('utf8')
+            path = self.clean_parameters(html.escape(endpoint["link"]).encode('ascii', 'ignore').decode('utf8'))
             if self.is_javascript_file(path):
                 self.save_file(path)
 
@@ -424,10 +430,11 @@ if __name__ == "__main__":
                 except Exception as e:
                     print("Invalid input defined or SSL error for: " + endpoint)
                     continue
-        javascript = javascript(args.input, endpoints) #instancia a classe passando o domain e os endpoints
-        if args.javascript:
-            javascript.main()
+        javascript = javascript(args.input, endpoints) 
+        
         if args.output == 'cli':
+            if args.javascript:
+                javascript.main()
             cli_output(endpoints)
         else:
             output += '''
