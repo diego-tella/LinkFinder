@@ -6,6 +6,7 @@
 # Fix webbrowser bug for MacOS
 import os
 os.environ["BROWSER"] = "open"
+import requests
 
 # Import libraries
 import re, sys, glob, html, argparse, jsbeautifier, webbrowser, subprocess, base64, ssl, xml.etree.ElementTree
@@ -24,6 +25,46 @@ try:
     from urllib.request import Request, urlopen
 except ImportError:
     from urllib2 import Request, urlopen
+
+#to do: retirar pontos de interrogação da url para fazer o parse correto do js e adicionar o beautiful
+class javascript:
+    def __init__(self, url, endpoints):
+        self.url = url
+        self.endpoints = endpoints
+
+    def is_javascript_file(self, file):
+        try:
+            ext = file.rsplit('.', 1)[1].lower()
+            if ext == "js":
+                return True
+            else:
+                return False
+        except:
+            return False
+
+    def save_file(self, file):
+        if self.is_full_url(file):
+            r = requests.get(file)
+            with open("javascript_files/"+self.get_file_path(file), 'w') as f:
+                f.write(r.text)
+        else:
+            r = requests.get(self.url+file)
+            with open("javascript_files/"+self.get_file_path(file), 'w') as f:
+                f.write(r.text)
+
+    def is_full_url(self, file):
+        if 'http' in file:
+            return True
+        else:
+            return False
+    def get_file_path(self, url):
+        return url.split("/")[-1]
+    
+    def main(self):
+        for endpoint in self.endpoints:
+            path = html.escape(endpoint["link"]).encode('ascii', 'ignore').decode('utf8')
+            if self.is_javascript_file(path):
+                self.save_file(path)
 
 # Regex used
 regex_str = r"""
@@ -313,8 +354,17 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--timeout",
                         help="How many seconds to wait for the server to send data before giving up (default: " + str(default_timeout) + " seconds)",
                         default=default_timeout, type=int, metavar="<seconds>")
+    parser.add_argument("-js", "--javascript",
+                        help="It will download all JavaScript files and unminify them",
+                        action="store_true")
     args = parser.parse_args()
 
+    if args.javascript:
+        try:
+            os.mkdir("javascript_files")
+        except FileExistsError:
+            pass
+    
     if args.input[-1:] == "/":
         args.input = args.input[:-1]
 
@@ -374,7 +424,9 @@ if __name__ == "__main__":
                 except Exception as e:
                     print("Invalid input defined or SSL error for: " + endpoint)
                     continue
-
+        javascript = javascript(args.input, endpoints) #instancia a classe passando o domain e os endpoints
+        if args.javascript:
+            javascript.main()
         if args.output == 'cli':
             cli_output(endpoints)
         else:
@@ -401,3 +453,5 @@ if __name__ == "__main__":
 
     if args.output != 'cli':
         html_save(output)
+
+
