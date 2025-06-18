@@ -6,11 +6,9 @@
 # Fix webbrowser bug for MacOS
 import os
 os.environ["BROWSER"] = "open"
-import requests
-import jsbeautifier
 
 # Import libraries
-import re, sys, glob, html, argparse, jsbeautifier, webbrowser, subprocess, base64, ssl, xml.etree.ElementTree
+import re, sys, glob, html, argparse, jsbeautifier, webbrowser, subprocess, base64, ssl, xml.etree.ElementTree, requests
 
 from gzip import GzipFile
 from string import Template
