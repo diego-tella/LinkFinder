@@ -372,7 +372,7 @@ if __name__ == "__main__":
     if args.javascript:
         try:
             os.mkdir("javascript_files")
-        except FileExistsError:
+        except:
             pass
     
     if args.input[-1:] == "/":
@@ -435,10 +435,9 @@ if __name__ == "__main__":
                     print("Invalid input defined or SSL error for: " + endpoint)
                     continue
         javascript = javascript(args.input, endpoints) 
-        
-        if args.output == 'cli':
-            if args.javascript:
+        if args.javascript:
                 javascript.main()
+        if args.output == 'cli':
             cli_output(endpoints)
         else:
             output += '''
